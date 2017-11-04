@@ -1,0 +1,14 @@
+
+*.db
+*.opendb
+*.ipch
+*.db-shm
+*.db-wal
+*.obj
+*.tlog
+*.idb
+*.log
+*.pdb
+*.ilk
+.vs/TestRegexp/v15/.suo
+*.config

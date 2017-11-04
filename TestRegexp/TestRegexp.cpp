@@ -2,6 +2,7 @@
 //
 
 #include "stdafx.h"
+#include <stdlib.h>
 #include "Regexp.h"
 
 #include "RegexpWrapper.h"
@@ -72,6 +73,31 @@ void Test1()
 
 }
 
+char* w2c(wchar_t* WStr)
+{
+	size_t len = wcslen(WStr) + 1;
+	size_t converted = 0;
+	char *CStr;
+	CStr = (char*)malloc(len * sizeof(char));
+	wcstombs_s(&converted, CStr, len, WStr, _TRUNCATE);
+}
+
+wchar_t* c2w(char* CStr)
+{
+	size_t len = strlen(CStr) + 1;
+	size_t converted = 0;
+	wchar_t *WStr;
+	WStr = (wchar_t*)malloc(len * sizeof(wchar_t));
+	mbstowcs_s(&converted, WStr, len, CStr, _TRUNCATE);
+}
+
+void test2()
+{
+	RegexpWrapper reg("abcefgkbkaaa");
+	std::vector<std::string> result = reg.GlobalMatch("b..");
+	printResult("b..", result);
+}
+
 int main()
 {
 	char buf[100] = "The quick brown fox jumps over the lazy wolf";
@@ -84,6 +110,7 @@ int main()
 	printf("count:%d\n", count);
 
 	Test1();
+	Test2();
 
 	getchar();
 

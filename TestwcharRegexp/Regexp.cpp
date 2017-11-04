@@ -66,13 +66,13 @@ void setup ()
   Serial.println ();
   
   MatchState ms;
-  char buf [100];  // large enough to hold expected string, or malloc it
+  xchar buf [100];  // large enough to hold expected string, or malloc it
   
   // string we are searching
   ms.Target ("Testing: answer=42");
   
   // search it
-  char result = ms.Match ("(%a+)=(%d+)", 0);
+  xchar result = ms.Match ("(%a+)=(%d+)", 0);
   
   // check results
   
@@ -260,7 +260,7 @@ static jmp_buf regexp_error_return;
 typedef unsigned char byte;
 
 // error codes raised during regexp processing
-static byte error (const char err)
+static byte error (const xchar err)
 {
   // does not return
   longjmp (regexp_error_return, err);
@@ -281,7 +281,7 @@ static int capture_to_close (MatchState *ms) {
   return error(ERR_INVALID_PATTERN_CAPTURE);
 } // end of capture_to_close
 
-static const char *classend (MatchState *ms, const char *p) {
+static const xchar *classend (MatchState *ms, const xchar *p) {
   switch (*p++) {
     case REGEXP_ESC: {
       if (*p == '\0')
@@ -305,7 +305,7 @@ static const char *classend (MatchState *ms, const char *p) {
 } // end of classend
 
 
-static int match_class (int c, int cl) {
+static int match_class (int c, int cl) {//***
   int res;
   switch (tolower(cl)) {
     case 'a' : res = isalpha(c); break;
@@ -323,9 +323,8 @@ static int match_class (int c, int cl) {
   return (islower(cl) ? res : !res);
 } // end of match_class
 
-_TCHAR
 
-static int matchbracketclass (int c, const char *p, const char *ec) {
+static int matchbracketclass (int c, const xchar *p, const xchar *ec) {
   int sig = 1;
   if (*(p+1) == '^') {
     sig = 0;
@@ -348,9 +347,9 @@ static int matchbracketclass (int c, const char *p, const char *ec) {
 } // end of matchbracketclass
 
 
-static int singlematch (int c, const char *p, const char *ep) {
+static int singlematch (int c, const xchar *p, const xchar *ep) {
   switch (*p) {
-    case '.': return 1;  /* matches any char */
+    case '.': return 1;  /* matches any xchar */
     case REGEXP_ESC: return match_class(c, uchar(*(p+1)));
     case '[': return matchbracketclass(c, p, ep-1);
     default:  return (uchar(*p) == c);
@@ -358,11 +357,11 @@ static int singlematch (int c, const char *p, const char *ep) {
 } // end of singlematch
 
 
-static const char *match (MatchState *ms, const char *s, const char *p);
+static const xchar *match (MatchState *ms, const xchar *s, const xchar *p);
 
 
-static const char *matchbalance (MatchState *ms, const char *s,
-                                 const char *p) {
+static const xchar *matchbalance (MatchState *ms, const xchar *s,
+                                 const xchar *p) {
   if (*p == 0 || *(p+1) == 0)
     error(ERR_UNBALANCED_PATTERN);
   if (*s != *p) return NULL;
@@ -381,14 +380,14 @@ static const char *matchbalance (MatchState *ms, const char *s,
 } //  end of matchbalance
 
 
-static const char *max_expand (MatchState *ms, const char *s,
-                               const char *p, const char *ep) {
+static const xchar *max_expand (MatchState *ms, const xchar *s,
+                               const xchar *p, const xchar *ep) {
   int i = 0;  /* counts maximum expand for item */
   while ((s+i)<ms->src_end && singlematch(uchar(*(s+i)), p, ep))
     i++;
   /* keeps trying to match with the maximum repetitions */
   while (i>=0) {
-    const char *res = match(ms, (s+i), ep+1);
+    const xchar *res = match(ms, (s+i), ep+1);
     if (res) return res;
     i--;  /* else didn't match; reduce 1 repetition to try again */
   }
@@ -396,10 +395,10 @@ static const char *max_expand (MatchState *ms, const char *s,
 } // end of max_expand
 
 
-static const char *min_expand (MatchState *ms, const char *s,
-                               const char *p, const char *ep) {
+static const xchar *min_expand (MatchState *ms, const xchar *s,
+                               const xchar *p, const xchar *ep) {
   for (;;) {
-    const char *res = match(ms, s, ep+1);
+    const xchar *res = match(ms, s, ep+1);
     if (res != NULL)
       return res;
     else if (s<ms->src_end && singlematch(uchar(*s), p, ep))
@@ -409,9 +408,9 @@ static const char *min_expand (MatchState *ms, const char *s,
 } // end of min_expand
 
 
-static const char *start_capture (MatchState *ms, const char *s,
-                                  const char *p, int what) {
-  const char *res;
+static const xchar *start_capture (MatchState *ms, const xchar *s,
+                                  const xchar *p, int what) {
+  const xchar *res;
   int level = ms->level;
   if (level >= MAXCAPTURES) error(ERR_TOO_MANY_CAPTURES);
   ms->capture[level].init = s;
@@ -423,10 +422,10 @@ static const char *start_capture (MatchState *ms, const char *s,
 } // end of start_capture
 
 
-static const char *end_capture (MatchState *ms, const char *s,
-                                const char *p) {
+static const xchar *end_capture (MatchState *ms, const xchar *s,
+                                const xchar *p) {
   int l = capture_to_close(ms);
-  const char *res;
+  const xchar *res;
   ms->capture[l].len = s - ms->capture[l].init;  /* close capture */
   if ((res = match(ms, s, p)) == NULL)  /* match failed? */
     ms->capture[l].len = CAP_UNFINISHED;  /* undo capture */
@@ -434,18 +433,18 @@ static const char *end_capture (MatchState *ms, const char *s,
 } // end of end_capture
 
 
-static const char *match_capture (MatchState *ms, const char *s, int l) {
+static const xchar *match_capture (MatchState *ms, const xchar *s, int l) {
   size_t len;
   l = check_capture(ms, l);
   len = ms->capture[l].len;
   if ((size_t)(ms->src_end-s) >= len &&
-      memcmp(ms->capture[l].init, s, len) == 0)
+      memcmp(ms->capture[l].init, s, len*sizeof(xchar)) == 0)
     return s+len;
   else return NULL;
 } // end of match_capture
 
 
-static const char *match (MatchState *ms, const char *s, const char *p) {
+static const xchar *match (MatchState *ms, const xchar *s, const xchar *p) {
 init: /* using goto's to optimize tail recursion */
   switch (*p) {
     case '(': {  /* start capture */
@@ -465,7 +464,7 @@ init: /* using goto's to optimize tail recursion */
           p+=4; goto init;  /* else return match(ms, s, p+4); */
         }
         case 'f': {  /* frontier? */
-          const char *ep; char previous;
+          const xchar *ep; xchar previous;
           p += 2;
           if (*p != '[')
             error(ERR_MISSING_LH_SQUARE_BRACKET_AFTER_ESC_F);
@@ -489,16 +488,16 @@ init: /* using goto's to optimize tail recursion */
       return s;  /* match succeeded */
     }
     case '$': {
-      if (*(p+1) == '\0')  /* is the `$' the last char in pattern? */
+      if (*(p+1) == '\0')  /* is the `$' the last xchar in pattern? */
         return (s == ms->src_end) ? s : NULL;  /* check end of string */
       else goto dflt;
     }
     default: dflt: {  /* it is a pattern item */
-      const char *ep = classend(ms, p);  /* points to what is next */
+      const xchar *ep = classend(ms, p);  /* points to what is next */
       int m = s<ms->src_end && singlematch(uchar(*s), p, ep);
       switch (*ep) {
         case '?': {  /* optional */
-          const char *res;
+          const xchar *res;
           if (m && ((res=match(ms, s+1, ep+1)) != NULL))
             return res;
           p=ep+1; goto init;  /* else return match(ms, s, ep+1); */
@@ -524,10 +523,10 @@ init: /* using goto's to optimize tail recursion */
 
 // functions below written by Nick Gammon ...
 
-char MatchState::Match (const char * pattern, unsigned int index)
+xchar MatchState::Match (const xchar * pattern, unsigned int index)
 {
   // set up for throwing errors
-  char rtn = setjmp (regexp_error_return);
+  xchar rtn = setjmp (regexp_error_return);
   
   // error return
   if (rtn)
@@ -540,12 +539,12 @@ char MatchState::Match (const char * pattern, unsigned int index)
     index = src_len;
 
   int anchor = (*pattern == '^') ? (pattern++, 1) : 0;
-  const char *s1 =src + index;
+  const xchar *s1 =src + index;
   src_end = src + src_len;
   
   // iterate through target string, character by character unless anchored
   do {
-    const char *res;
+    const xchar *res;
     level = 0;
     if ((res=match(this, s1, pattern)) != NULL) 
     {
@@ -560,12 +559,12 @@ char MatchState::Match (const char * pattern, unsigned int index)
 } // end of regexp
 
 // set up the target string
-void MatchState::Target (char * s) 
+void MatchState::Target (xchar * s) 
   {
-  Target (s, strlen (s));
+  Target (s, xstrlen (s));
   }  // end of MatchState::Target
 
-void MatchState::Target (char * s, const unsigned int len) 
+void MatchState::Target (xchar * s, const unsigned int len) 
   { 
   src = s; 
   src_len = len; 
@@ -574,13 +573,13 @@ void MatchState::Target (char * s, const unsigned int len)
 
 // copy the match string to user-supplied buffer
 // buffer must be large enough to hold it
-char * MatchState::GetMatch (char * s) const
+xchar * MatchState::GetMatch (xchar * s) const
 {
   if (result != REGEXP_MATCHED)
     s [0] = 0;  
   else 
     {
-    memcpy (s, &src [MatchStart], MatchLength);
+    memcpy (s, &src [MatchStart], MatchLength*sizeof(xchar));//***
     s [MatchLength] = 0;  // null-terminated string
     }
   return s;
@@ -588,20 +587,20 @@ char * MatchState::GetMatch (char * s) const
 
 // get one of the capture strings (zero-relative level)
 // buffer must be large enough to hold it
-char * MatchState::GetCapture (char * s, const int n) const
+xchar * MatchState::GetCapture (xchar * s, const int n) const
 {
   if (result != REGEXP_MATCHED || n >= level || capture [n].len <= 0)
     s [0] = 0;  
   else 
     {
-    memcpy (s, capture [n].init, capture [n].len);
+    memcpy (s, capture [n].init, capture [n].len * sizeof(xchar));
     s [capture [n].len] = 0;  // null-terminated string
     }
   return s;
 } // end of MatchState::GetCapture
 
 // match repeatedly on a string, return count of matches
-unsigned int MatchState::MatchCount (const char * pattern)
+unsigned int MatchState::MatchCount (const xchar * pattern)
 {
   unsigned int count = 0;
   
@@ -618,7 +617,7 @@ unsigned int MatchState::MatchCount (const char * pattern)
 } // end of MatchState::MatchCount
 
 // match repeatedly on a string, call function f for each match
-unsigned int MatchState::GlobalMatch (const char * pattern, GlobalMatchCallback f)
+unsigned int MatchState::GlobalMatch (const xchar * pattern, GlobalMatchCallback f)
 {
   unsigned int count = 0;
 
@@ -639,7 +638,7 @@ unsigned int MatchState::GlobalMatch (const char * pattern, GlobalMatchCallback 
 //  f sets replacement string, incorporate replacement and continue
 // maximum of max_count replacements if max_count > 0
 // replacement string in GlobalReplaceCallback must stay in scope (eg. static string or literal)
-unsigned int MatchState::GlobalReplace (const char * pattern, GlobalReplaceCallback f, const unsigned int max_count)
+unsigned int MatchState::GlobalReplace (const xchar * pattern, GlobalReplaceCallback f, const unsigned int max_count)
 {
   unsigned int count = 0;
   
@@ -651,7 +650,7 @@ unsigned int MatchState::GlobalReplace (const char * pattern, GlobalReplaceCallb
        count++)
     {
     // default is to replace with self
-    char * replacement = &src [MatchStart];
+    xchar * replacement = &src [MatchStart];
     unsigned int replacement_length = MatchLength;
     
     // increment index ready for next time, go forwards at least one byte
@@ -669,10 +668,10 @@ unsigned int MatchState::GlobalReplace (const char * pattern, GlobalReplaceCallb
       int lengthDiff = MatchLength - replacement_length;
       
       // copy the rest of the buffer backwards/forwards to allow for the length difference
-      memmove (&src [index - lengthDiff], &src [index], src_len - index);
+      memmove (&src [index - lengthDiff], &src [index], (src_len - index)*sizeof(xchar));//***
       
       // copy in the replacement
-      memmove (&src [MatchStart], replacement, replacement_length);
+      memmove (&src [MatchStart], replacement, replacement_length*sizeof(xchar));//***
       
       // adjust the index for the next search
       index -= lengthDiff;  
@@ -690,10 +689,10 @@ unsigned int MatchState::GlobalReplace (const char * pattern, GlobalReplaceCallb
 // match repeatedly on a string, replaces with replacement string for each match
 // maximum of max_count replacements if max_count > 0
 // replacement string in GlobalReplaceCallback must stay in scope (eg. static string or literal)
-unsigned int MatchState::GlobalReplace (const char * pattern, char * replacement, const unsigned int max_count)
+unsigned int MatchState::GlobalReplace (const xchar * pattern, xchar * replacement, const unsigned int max_count)
 {
   unsigned int count = 0;
-  unsigned int replacement_length = strlen (replacement);
+  unsigned int replacement_length = xstrlen (replacement);
   
   // keep matching until we run out of matches
   for (unsigned int index = 0;
@@ -713,10 +712,10 @@ unsigned int MatchState::GlobalReplace (const char * pattern, char * replacement
       int lengthDiff = MatchLength - replacement_length;
       
       // copy the rest of the buffer backwards/forwards to allow for the length difference
-      memmove (&src [index - lengthDiff], &src [index], src_len - index);
+      memmove (&src [index - lengthDiff], &src [index], (src_len - index)*sizeof(xchar));//***宽字符这里还需要
       
       // copy in the replacement
-      memmove (&src [MatchStart], replacement, replacement_length);
+      memmove (&src [MatchStart], replacement, replacement_length*sizeof(xchar));////***
       
       // adjust the index for the next search
       index -= lengthDiff;  
