@@ -33,6 +33,7 @@
 #   define xvsprintf	    vswprintf
 #	define _xvscprintf		_vscwprintf
 #   define xvsnprintf	    vswprintf
+#define xprintf				wprintf;
 
 #else
 #define xchar char
@@ -56,6 +57,7 @@
 #	define _xvscprintf		_vscprintf
 #   define xvsnprintf	    vsnprintf
 
+#define xprintf				printf
 #endif // USE_WCHAR
 
 
