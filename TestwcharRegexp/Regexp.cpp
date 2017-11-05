@@ -255,6 +255,8 @@ PATTERNS
 #include <string.h>
 #include "Regexp.h"
 
+#pragma warning (disable: 4076)//All off
+
 // for throwing errors
 static jmp_buf regexp_error_return;
 typedef unsigned char byte;

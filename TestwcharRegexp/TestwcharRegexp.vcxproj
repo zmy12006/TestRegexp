@@ -143,6 +143,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="MArray.h" />
     <ClInclude Include="MString.h" />
     <ClInclude Include="Regexp.h" />
     <ClInclude Include="RegexpWrapper.h" />

@@ -13,6 +13,8 @@
 #include<string.h>
 #include<stdlib.h>
 #include "MString.h"
+#include "MArray.h"
+#include "Regexp.h"
 
 #pragma warning (disable: 4996)//All off
 //#pragma warning (once: 4996)//shows only one
@@ -111,6 +113,45 @@ const xchar* MString::c_str() const
 void MString::debug()
 {
 	std::cout << pstr_ << std::endl;
+}
+
+void mstr_match_callback(const xchar * match,          // matching string (not null-terminated)
+	const unsigned int length,   // length of matching string
+	const MatchState & ms)
+{
+	if (ms.level > 0)
+	{
+		for (int i = 0; i < ms.level; i++)
+		{
+			xchar tmpStr[256] = { 0 };
+			memcpy(tmpStr, ms.capture[i].init, ms.capture[i].len * sizeof(xchar));
+			//mResults.push_back(tmpStr);
+			if ( ms.UserData != nullptr )
+			{
+				((MArray<MString>*)(ms.UserData))->push(tmpStr);
+			}
+		}
+	}
+	else
+	{
+		xchar tmpStr[256] = { 0 };
+		memcpy(tmpStr, match, length * sizeof(xchar));
+		//mResults.push_back(tmpStr);
+		if (ms.UserData != nullptr)
+		{
+			((MArray<MString>*)(ms.UserData))->push(tmpStr);
+		}
+	}
+
+}
+
+MArray<MString>	MString::match(xchar* expression)
+{
+	MArray<MString> result;
+	MatchState state = MatchState(pstr_);
+	state.UserData = (void*)&result;
+	state.GlobalMatch(expression, &mstr_match_callback);
+	return result;
 }
 
 MString operator+(const MString & s1, const MString & s2)

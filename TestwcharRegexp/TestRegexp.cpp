@@ -6,6 +6,8 @@
 #include <locale.h>
 #include "RegexpWrapper.h"
 
+#include "MString.h"
+
 // called for each match
 void match_callback(const xchar * match,          // matching string (not null-terminated)
 	const unsigned int length,   // length of matching string
@@ -113,6 +115,19 @@ void Test2()
 	printResult(X("°®.."), result);
 }
 
+void test3()
+{
+	MString str = X("abcefgkbkaaa");
+	MArray<MString> ret = str.match(X("b..."));
+
+	for ( int i = 0; i < ret.size(); i ++ )
+	{
+		xprintf(ret[i].c_str());
+		xprintf(X("\n"));
+	}
+
+}
+
 int main()
 {
 	setlocale(LC_ALL, "chs");
@@ -126,6 +141,7 @@ int main()
 	xprintf(X("count:%d\n"), count);
 	
 	Test2();
+	test3();
 
 	getchar();
 

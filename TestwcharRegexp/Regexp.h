@@ -75,7 +75,7 @@ private:
   
 public:
   
-  MatchState () : result (REGEXP_NOMATCH), src (0) {};  // constructor
+  MatchState () : result (REGEXP_NOMATCH), src (0), UserData(nullptr){};  // constructor
   MatchState (xchar * s) : result (REGEXP_NOMATCH) 
     { Target (s); };  // constructor from null-terminated string
   MatchState (xchar * s, const unsigned int len) : result (REGEXP_NOMATCH) 
@@ -126,5 +126,7 @@ public:
   // returns count of replacements
   unsigned int GlobalReplace (const xchar * pattern, xchar * replacement, const unsigned int max_count = 0);
   
+  void*	UserData;
+
 } MatchState;
 

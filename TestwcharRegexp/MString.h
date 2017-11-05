@@ -63,6 +63,7 @@
 #endif // USE_WCHAR
 
 
+#include "MArray.h"
 
 class MString
 {
@@ -84,6 +85,8 @@ public:
 	int size() const;
 	const xchar* c_str() const;
 	void debug();
+
+	MArray<MString>	match(xchar* expression);
 
 	//MString 类和char相加的几个情况
 	friend MString operator+(const MString & s1, const MString & s2);
@@ -117,5 +120,7 @@ public:
 private:
 	xchar *pstr_;
 };
+
+//typedef MArray<MString>	MStrArray;
 
 #endif
